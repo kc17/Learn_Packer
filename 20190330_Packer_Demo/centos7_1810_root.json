@@ -1,0 +1,71 @@
+{
+  "variables": {
+    "vm_name": "Base",
+    "guest_os_type": "RedHat_64",
+    "iso_url": "http://ftp.yzu.edu.tw/Linux/CentOS/7.6.1810/isos/x86_64/CentOS-7-x86_64-Minimal-1810.iso",
+    "iso_checksum": "38d5d51d9d100fd73df031ffd6bd8b1297ce24660dc8c13a3b8b4534a4bd291c",
+    "iso_checksum_type": "sha256",
+    "ssh_host": "Your IP Address"
+  },
+  "_description": "Build",
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "vm_name": "{{user `vm_name`}}",
+      "guest_os_type": "{{user `guest_os_type`}}",
+      "iso_url": "{{user `iso_url`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "iso_checksum_type": "{{user `iso_checksum_type`}}",
+      "ssh_host": "{{user `ssh_host`}}",
+      "ssh_port": 22,
+      "ssh_skip_nat_mapping": "true",
+      "ssh_wait_timeout": "1000s",
+      "ssh_username": "root",
+      "ssh_password": "1qaz!QAZ",
+      "disk_size": 40960,
+      "shutdown_command": "echo '1qaz!QAZ' | sudo -S shutdown -P now",
+      "keep_registered": "false",
+      "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+      "virtualbox_version_file": ".vbox_version",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--vrde", "off"],
+        ["modifyvm", "{{.Name}}", "--memory", "2048"],
+        ["modifyvm", "{{.Name}}", "--cpus", "2"],
+        ["modifyvm", "{{.Name}}", "--usb", "off"],
+        ["modifyvm", "{{.Name}}", "--audio", "none"],
+        ["modifyvm", "{{.Name}}", "--nic1", "bridged"],
+        ["modifyvm", "{{.Name}}", "--nictype1", "82540EM"],
+        ["modifyvm", "{{.Name}}", "--cableconnected1", "on"],
+        ["modifyvm", "{{.Name}}", "--nictrace1", "off"],
+        ["modifyvm", "{{.Name}}", "--bridgeadapter1", "en1: Wi-Fi (AirPort)"],
+        ["modifyvm", "{{.Name}}", "--macaddress1", "auto"]
+      ],
+      "http_directory": "./http/",
+      "boot_wait": "10s",
+      "boot_command": [
+        "<tab> text ks=hd:fd0:/ks.cfg<enter><wait>"
+      ],
+      "floppy_files": [
+          "http/ks.cfg"
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": ["echo 'Hello Packer' >> /tmp/packer-`date +%F`.txt"],
+      "pause_before": "10s"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "keep_input_artifact": false,
+      "override": {
+        "virtualbox": {
+          "output": "./output/{{user `vm_name`}}-CentOS-7-1810-x86_64-minimal.box"
+        }
+      }
+    }
+  ]
+}

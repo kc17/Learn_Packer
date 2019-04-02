@@ -1,0 +1,7 @@
+---
+# tasks file for demo
+- name: Put file
+  copy:
+    src: ./files/ansible.txt
+    dest: /tmp/ansible.txt
+    mode: 0644
